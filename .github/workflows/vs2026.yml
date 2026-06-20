@@ -44,6 +44,14 @@ jobs:
     - name: Checkout submodules recursively
       run: git submodule update --init --recursive --remote
 
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Update vcxproj files
+      run: python utils/replace-sdk-wdk.py
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
 
