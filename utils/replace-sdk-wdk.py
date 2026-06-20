@@ -6,12 +6,16 @@ looking for .vcxproj files.
 
 import os
 
-TARGET_SDK_WDK_VERSION = "10.0.28000.0"
+TARGET_SDK_WDK_VERSION = "10.0.28000.0" # Update this version in case of updating NuGet packages
 
 REPLACEMENTS = {
     "<WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>": "<WindowsTargetPlatformVersion>" + TARGET_SDK_WDK_VERSION + "</WindowsTargetPlatformVersion>",
     "<WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>": "<WindowsTargetPlatformVersion>" + TARGET_SDK_WDK_VERSION + "</WindowsTargetPlatformVersion>",
 }
+
+
+# Directory *names* to skip wherever they appear in the tree.
+EXCLUDED_DIR_NAMES = {".git"}
 
 
 def replace_in_file(filepath: str) -> bool:
@@ -30,16 +34,25 @@ def replace_in_file(filepath: str) -> bool:
 
 
 def main() -> None:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    target_root = os.path.dirname(script_dir) + "\\hyperdbg"
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(script_path)
+    target_root = os.path.dirname(script_dir)  # parent of this folder
 
     print(f"Scanning for .vcxproj files under: {target_root}")
 
     changed_count = 0
-    for root, _dirs, files in os.walk(target_root):
+    for root, dirs, files in os.walk(target_root):
+        # Prune in place so os.walk never descends into these directories.
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIR_NAMES]
+
         for file in files:
             if file.endswith(".vcxproj"):
                 filepath = os.path.join(root, file)
+
+                # Never touch this script itself.
+                if os.path.abspath(filepath) == script_path:
+                    continue
+
                 if replace_in_file(filepath):
                     print(f"Updated: {filepath}")
                     changed_count += 1
