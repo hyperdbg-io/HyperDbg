@@ -44,14 +44,6 @@ jobs:
     - name: Checkout submodules recursively
       run: git submodule update --init --recursive --remote
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Update vcxproj files
-      run: python utils/replace-sdk-wdk.py
-
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
 
@@ -60,6 +52,14 @@ jobs:
 
     - name: Restore NuGet packages
       run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Update vcxproj files
+      run: python utils/replace-sdk-wdk.py
 
     - name: Build HyperDbg solution
       working-directory: ${{env.GITHUB_WORKSPACE}}
